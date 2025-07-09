@@ -75,13 +75,34 @@ class MainWindow(QWidget):
             if not self.A:
                 return
 
-            nombre_chat = "Plageo"
+            nombre_chat = "Gian"
             titulo = str(self.A[0][self.contador])
             descripcion = str(self.A[2][self.contador])
             autor = str(self.A[3][self.contador])
             fecha = str(self.A[4][self.contador])
             url = str(self.A[1][self.contador])
             ruta_imagen = "C:/Users/Jose/Desktop/NOTITECH/"+self.A[5][self.contador]
+            '''NroNoticia=""
+            for i in range(0,17):
+                NroNoticia=str(i)
+            mensaje = f"""📢 *NOTICIA N° {NroNoticia}*
+
+                        📰 *Título:* {titulo}
+
+                        📝 *Descripción:* 
+                            {descripcion}
+
+                        👤 *Autor:* {autor}
+                        📅 *Fecha:* {fecha}
+                        🔗 *URL:* {url}
+                        🖼️ *Imagen:* {ruta_imagen}
+
+                        """
+
+            # Guardar en archivo
+            with open("noticia.txt", "a", encoding="utf-8") as archivo:
+                archivo.write(mensaje)
+                archivo.write("\n" + "-"*40 + "\n")  # Separador opcional'''
 
             chatbot.enviar_mensaje_whatsapp(nombre_chat, titulo, descripcion, autor, fecha, url, ruta_imagen)
 

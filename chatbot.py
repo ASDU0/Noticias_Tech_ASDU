@@ -13,7 +13,7 @@ import subprocess
 import pyautogui
 
 # -------------------------------
-# 1️⃣ Función para iniciar Chrome
+# 1️⃣ Iniciar Chrome
 # -------------------------------
 def iniciar_chrome():
     ruta = ChromeDriverManager().install()
@@ -33,11 +33,8 @@ def iniciar_chrome():
     options.add_argument("--no-first-run")
     options.add_argument("--no-proxy-server")
     options.add_argument("--disable-blink-features=AutomationControlled")
-    exp_opt = [
-        'enable-automation',
-        'ignore-certificate-errors',
-        'enable-logging'
-    ]
+
+    exp_opt = ['enable-automation', 'ignore-certificate-errors', 'enable-logging']
     prefs = {
         "profile.default_content_setting_values.notifications": 2,
         "intl.accept_languages": ["es-ES", "es"],
@@ -51,7 +48,7 @@ def iniciar_chrome():
     return driver
 
 # -----------------------------------------------
-# 2️⃣ Función para enviar mensaje con imagen
+# 2️⃣ Enviar mensaje con imagen
 # -----------------------------------------------
 def enviar_mensaje_whatsapp(nombre_chat, titulo, descripcion, autor, fecha, url, ruta_imagen):
     whatsapp_url = "https://web.whatsapp.com/"
@@ -61,24 +58,27 @@ def enviar_mensaje_whatsapp(nombre_chat, titulo, descripcion, autor, fecha, url,
     try:
         wait = WebDriverWait(driver, 60)
 
-        # Esperar la caja de búsqueda
+        # ✅ Esperar escaneo del QR
+        print("📷 Esperando que se escanee el QR de WhatsApp Web...")
         search_box = wait.until(EC.presence_of_element_located(
             (By.XPATH, '//div[@contenteditable="true"][@data-tab="3"]')
         ))
-        print(" QR escaneado. Buscando chat...")
+        print("✅ QR escaneado. Esperando que cierres manualmente cualquier anuncio que aparezca...")
+        print("⏳ Tienes 15 segundos para cerrar el popup si aparece.\n")
+        time.sleep(15)  # Espera para cerrar anuncios manuales
 
-        # Buscar el chat
+        # 🔍 Buscar el chat
         search_box.click()
         search_box.send_keys(nombre_chat)
         search_box.send_keys(Keys.ENTER)
-        print(f" Chat '{nombre_chat}' abierto.")
+        print(f"💬 Chat '{nombre_chat}' abierto.")
 
-        # Esperar la caja de texto para mensajes
+        # ✍️ Esperar la caja de texto para mensajes
         input_box = wait.until(EC.presence_of_element_located(
             (By.XPATH, '//div[@contenteditable="true" and @data-tab="10"]')
         ))
 
-        # Preparar el mensaje estructurado
+        # 📝 Preparar y enviar mensaje
         mensaje = f"""*{titulo}*
 {descripcion}
 
@@ -87,52 +87,50 @@ Fecha: {fecha}
 URL: {url}
 """
 
-        #  Enviar el mensaje de texto
         input_box.click()
         input_box.clear()
         for linea in mensaje.split("\n"):
             input_box.send_keys(linea)
             input_box.send_keys(Keys.SHIFT + Keys.ENTER)
         input_box.send_keys(Keys.ENTER)
-        print(" Mensaje de texto enviado.")
+        print("✅ Mensaje de texto enviado.")
 
-        #  Enviar la imagen en un mensaje nuevo
+        # 📷 Enviar imagen si existe
         if ruta_imagen and os.path.exists(ruta_imagen):
-            # Copiar imagen al portapapeles
             ruta_abs = os.path.abspath(ruta_imagen)
             comando = f'powershell -command "Add-Type -AssemblyName System.Windows.Forms; ' \
-                       f'[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile(\\\"{ruta_abs}\\\"))"'
+                      f'[Windows.Forms.Clipboard]::SetImage([Drawing.Image]::FromFile(\\\"{ruta_abs}\\\"))"'
             subprocess.run(comando, shell=True)
             time.sleep(1)
 
-            # Hacer clic en la caja de texto (para un nuevo mensaje)
-            input_box = wait.until(EC.presence_of_element_located(
-                (By.XPATH, '//div[@contenteditable="true" and @data-tab="10"]')
-            ))
             input_box.click()
             time.sleep(1)
-
-            # Pegar la imagen
             pyautogui.hotkey("ctrl", "v")
-            print(" Imagen pegada en el chat.")
-            time.sleep(3)  # espera a que se cargue la vista previa
-
-            # Enviar la imagen (Enter)
+            print("🖼 Imagen pegada en el chat.")
+            time.sleep(3)
             pyautogui.press("enter")
-            print(" Imagen enviada con éxito.")
+            print("✅ Imagen enviada con éxito.")
         else:
-            print("⚠️ No se encontró la ruta de la imagen o no existe.")
+            print("⚠️ No se encontró la imagen o no existe.")
 
     except Exception as e:
-        print(" Ocurrió un error:")
+        print("❌ Ocurrió un error:")
         print(f"Error: {e}")
         traceback.print_exc()
     finally:
+        print("🕐 Esperando 60 segundos antes de cerrar...")
         time.sleep(60)
         driver.quit()
 
-
-
-
-
-
+# -----------------------------------------------
+# 💡 Ejemplo de uso:
+# -----------------------------------------------
+# enviar_mensaje_whatsapp(
+#     nombre_chat="Grupo de Noticias",
+#     titulo="Novedades de la semana",
+#     descripcion="Ya está disponible la nueva función de IA que resume documentos automáticamente.",
+#     autor="ChatGPT News Bot",
+#     fecha="2025-07-09",
+#     url="https://ejemplo.com/novedades-ia",
+#     ruta_imagen="noticia.jpg"
+# )
